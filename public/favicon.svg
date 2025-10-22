@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <image id="logo" href="/assets/Logo_Mark.png" width="20" height="20" x="6" y="6"/>
+  </defs>
+  <rect width="32" height="32" rx="4" ry="4" fill="white"/>
+  <use href="#logo"/>
+</svg>
