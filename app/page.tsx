@@ -4,22 +4,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { PortalMessage } from '@/lib/fsdb';
 import TickerMarquee from '@/components/TickerMarquee';
 import Composer from '@/components/Composer';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 export default function Home() {
   const [messages, setMessages] = useState<PortalMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [dotLottieSrc, setDotLottieSrc] = useState<string>('/assets/DMN_LogoAnimationV2.lottie');
 
   const fetchMessages = useCallback(async () => {
     try {
       console.log('Fetching messages...');
-      
-      // Add loading delay to match Lottie animation duration (115 frames at 15fps = ~7.67 seconds)
-      await new Promise(resolve => setTimeout(resolve, 7670));
       
       const response = await fetch('/api/messages');
       console.log('Response status:', response.status);
@@ -32,9 +26,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
-    } finally {
-      console.log('Setting loading to false');
-      setIsLoading(false);
     }
   }, []);
 
@@ -98,42 +89,33 @@ export default function Home() {
     fetchMessages();
   }, [fetchMessages]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white text-black flex items-center justify-center dmn-text">
-        <div className="text-center -mt-16">
-          <div className="flex flex-col items-center justify-center gap-30">
-            {dotLottieSrc ? (
-              <div className="w-80 h-80 flex items-center justify-center">
-                <DotLottieReact
-                  src={dotLottieSrc}
-                  loop={false}
-                  autoplay={true}
-                  style={{ width: 480, height: 480 }}
-                />
-              </div>
-            ) : (
-              <div className="w-80 h-80 flex items-center justify-center">
-                <img src="/assets/Logo_Mark.png" alt="DMN Mark" className="h-80 w-auto" />
-              </div>
-            )}
-            <img src="/assets/Logo_Type.png" alt="DMN Lab" className="h-6 w-auto" />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col dmn-text">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-white text-black flex flex-col">
+      {/* Top spacer */}
+      <div className="flex-1"></div>
+      
+      {/* Ticker Section - Moved down */}
+      <section className="bg-white py-4 px-4">
+        <div className="max-w-7xl mx-auto">
+          <TickerMarquee 
+            messages={messages} 
+            speed={speed} 
+            paused={isPaused}
+          />
+        </div>
+      </section>
+
+      {/* Spacer between marquee and controls */}
+      <div className="h-[200px]"></div>
+
+      {/* Controls Section - Close to marquee */}
+      <section className="bg-white py-4 px-8">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div>
-                <img src="/assets/Logo_Type.png" alt="DMN Lab" className="dmn-logo" />
-                <div className="dmn-text text-sm" style={{color: '#0015D5'}}>Default Mode Network Research Lab</div>
+                <div className="text-sm text-gray-600">Message Portal</div>
               </div>
             </div>
             
@@ -141,12 +123,12 @@ export default function Home() {
             <div className="flex items-center gap-4">
               {/* Speed Control */}
               <div className="flex items-center gap-2">
-                <label htmlFor="speed" className="text-sm text-black dmn-text">SPEED:</label>
+                <label htmlFor="speed" className="text-sm text-black">SPEED:</label>
                 <select
                   id="speed"
                   value={speed}
                   onChange={(e) => setSpeed(Number(e.target.value))}
-                  className="terminal-input px-3 py-1 text-sm dmn-text"
+                  className="terminal-input px-3 py-1 text-sm"
                 >
                   <option value={0.5}>0.5x</option>
                   <option value={1}>1.0x</option>
@@ -158,7 +140,7 @@ export default function Home() {
               {/* Pause/Play Toggle */}
               <button
                 onClick={() => setIsPaused(!isPaused)}
-                className="terminal-button px-4 py-2 text-sm dmn-text"
+                className="terminal-button px-4 py-2 text-sm"
                 aria-label={isPaused ? 'Resume scrolling' : 'Pause scrolling'}
               >
                 {isPaused ? 'PLAY' : 'PAUSE'}
@@ -166,24 +148,24 @@ export default function Home() {
 
               {/* Dev Menu */}
               <div className="relative group">
-                <button className="text-black text-sm dmn-text hover:opacity-70" style={{color: 'inherit'}} onMouseEnter={(e) => e.target.style.color = '#0015D5'} onMouseLeave={(e) => e.target.style.color = 'inherit'}>MENU</button>
+                <button className="text-black text-sm hover:opacity-70">MENU</button>
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
                   <div className="py-2">
                     <button
                       onClick={() => setIsPaused(!isPaused)}
-                      className="w-full text-left px-4 py-2 text-sm text-black hover:bg-blue-50 dmn-text"
+                      className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-50"
                     >
                       {isPaused ? 'RESUME' : 'PAUSE'}
                     </button>
                     <button
                       onClick={handleArchive}
-                      className="w-full text-left px-4 py-2 text-sm text-black hover:bg-blue-50 dmn-text"
+                      className="w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-50"
                     >
                       ARCHIVE
                     </button>
                     <button
                       onClick={handleClearToday}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dmn-text"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       CLEAR
                     </button>
@@ -193,31 +175,23 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content */}
-      <main className="flex-1 relative">
-        {/* Ticker Section - Absolute positioned */}
-        <section className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="w-full max-w-7xl">
-            <TickerMarquee 
-              messages={messages} 
-              speed={speed} 
-              paused={isPaused}
-            />
-          </div>
-        </section>
+      {/* Spacer between controls and input */}
+      <div className="h-[200px]"></div>
 
-        {/* Composer Section */}
-        <section className="absolute bottom-0 left-0 right-0 bg-white p-6">
-          <div className="max-w-7xl mx-auto">
-            <Composer 
-              onMessageSubmit={handleMessageSubmit}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-        </section>
-      </main>
+      {/* Composer Section - Moved up */}
+      <section className="bg-white py-4 px-6 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto">
+          <Composer 
+            onMessageSubmit={handleMessageSubmit}
+            isSubmitting={isSubmitting}
+          />
+        </div>
+      </section>
+      
+      {/* Bottom spacer */}
+      <div className="flex-1"></div>
     </div>
   );
 }
