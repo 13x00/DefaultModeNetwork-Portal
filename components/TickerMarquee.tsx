@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { PortalMessage } from '@/lib/fsdb';
 import { timeAgo } from '@/lib/time';
 
@@ -11,41 +11,7 @@ interface TickerMarqueeProps {
 }
 
 export default function TickerMarquee({ messages, speed = 1, paused = false }: TickerMarqueeProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const animationRef = useRef<number>();
-
-  useEffect(() => {
-    if (paused || isHovered || messages.length === 0) return;
-
-    const animate = () => {
-      setPosition(prev => {
-        const container = containerRef.current;
-        if (!container) return prev;
-        
-        const containerWidth = container.offsetWidth;
-        const contentWidth = container.scrollWidth;
-        
-        // Reset position when we've scrolled past the content
-        if (prev <= -contentWidth) {
-          return containerWidth;
-        }
-        
-        return prev - (0.5 * speed);
-      });
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [speed, paused, isHovered, messages.length]);
 
   if (messages.length === 0) {
     return (
@@ -67,12 +33,12 @@ export default function TickerMarquee({ messages, speed = 1, paused = false }: T
     return { text: msg.text, time: time };
   });
 
-  // No duplication - just show the messages once
-  const displayItems = tickerItems;
+  // Calculate animation duration based on content length and speed
+  const baseDuration = 20; // Base duration in seconds
+  const animationDuration = baseDuration / speed;
 
   return (
     <div
-      ref={containerRef}
       className="w-full h-20 overflow-hidden relative terminal-rounded"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -80,10 +46,13 @@ export default function TickerMarquee({ messages, speed = 1, paused = false }: T
       aria-label="DMN Lab ticker"
     >
       <div
-        className="flex items-center h-full absolute top-0 dmn-text text-black whitespace-nowrap"
+        className={`flex items-center h-full dmn-text text-black whitespace-nowrap ${
+          paused || isHovered ? 'animate-none' : 'animate-scroll'
+        }`}
         style={{
-          transform: `translateX(${position}px)`,
-          willChange: 'transform',
+          animationDuration: `${animationDuration}s`,
+          animationTimingFunction: 'linear',
+          animationIterationCount: 'infinite',
         }}
       >
         <div className="flex items-center gap-3 mr-12 flex-shrink-0">
@@ -92,7 +61,7 @@ export default function TickerMarquee({ messages, speed = 1, paused = false }: T
         </div>
         
         {/* Individual message items */}
-        {displayItems.map((item, index) => (
+        {tickerItems.map((item, index) => (
           <div key={`${index}-${item.text}`} className="flex items-center gap-3 mr-8">
             {/* Time indicator */}
             <div className="flex-shrink-0">
